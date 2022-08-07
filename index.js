@@ -51,11 +51,31 @@ app.get('/products/:id', async (req, res) => {
         res.json(product)
     } catch (error) {
         return res.status(404).send({
+            message: 'Product not found',
+        })
+    }
+})
+
+// radera en produkt
+app.delete('/products/:id',(req,res)=>{
+    try {
+        const id = req.params.id
+        const product = await Product.findByIdAndDelete(id)
+
+        // ifall vi inte hittar en produkt så skickar vi koden till catch stadiet
+        if (!product) {
+            throw new Error()
+        }
+
+        res.json(product)
+    } catch (error) {
+        return res.status(404).send({
             message: 'Product not found 33',
         })
     }
 })
 
+// skapa en ny produkt
 app.post('/product', async (req, res) => {
     // ifall använder gav något som inte stämmer överens med vår Mongoose schema kommer funktionen error:a
     // som vi fångar i catch nedanför
