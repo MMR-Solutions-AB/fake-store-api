@@ -14,5 +14,7 @@
 -   Node
 -   Express
 -   CORS
+-   MongoDB & Mongoose
+-   env variabler
 
 Detta projekt kommer byggas på nästa vecka när ni kommer ha lärt er MongoDB och Mongoose

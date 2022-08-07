@@ -1,26 +1,16 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const mongoose = require('mongoose')
+const Product = require('./models/Product')
 const { z } = require('zod')
 
-// default data
-const products = [
-    {
-        id: 1,
-        name: 'Blue shoes',
-        price: 29.99,
-    },
-    {
-        id: 2,
-        name: 'Skinny jeans',
-        price: 12.0,
-    },
-    {
-        id: 3,
-        name: 'Oversized T-shirt',
-        price: 17.5,
-    },
-]
+require('dotenv').config()
+
+// connection till vår databas
+mongoose.connect(process.env.MONGODB_URL, () => {
+    console.log('connected')
+})
 
 app.use(express.json())
 
@@ -32,51 +22,51 @@ app.use(
 )
 
 // svarar med alla produkter
-app.get('/products', (_, res) => {
+app.get('/products', async (req, res) => {
+    const { sortBy, sortOrder } = req.query
+    const querySchema = z.object({
+        sortBy: z.enum(['name', 'price']),
+        sortOrder: z.enum(['asc', 'desc']),
+    })
+
+    const isValid = querySchema.safeParse({ sortBy, sortOrder })
+    const products = await Product.find({}).sort(
+        isValid ? { [sortBy]: sortOrder } : {}
+    )
+
     res.json(products)
 })
 
 // svarar en produkt
-app.get('/products/:id', (req, res) => {
-    // req.params.id är en string till att börja med, så vi gör om det till ett nummer
-    const id = parseInt(req.params.id)
-    const product = products.find((p) => p.id === id)
+app.get('/products/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const product = await Product.findById(id)
 
-    // ifall vi inte hittar en produkt svarar vi med ett 404 error
-    if (!product) {
+        // ifall vi inte hittar en produkt så skickar vi koden till catch stadiet
+        if (!product) {
+            throw new Error()
+        }
+
+        res.json(product)
+    } catch (error) {
         return res.status(404).send({
-            message: 'Product not found',
+            message: 'Product not found 33',
         })
     }
-
-    res.json(product)
 })
 
-app.post('/product', (req, res) => {
-    // skapar en schema med zod för att senare validera att det som klienten skickar är korrekt
-    const requestSchema = z.object({
-        name: z.string(),
-        price: z.number(),
-    })
+app.post('/product', async (req, res) => {
+    // ifall använder gav något som inte stämmer överens med vår Mongoose schema kommer funktionen error:a
+    // som vi fångar i catch nedanför
+    try {
+        const { name, price } = req.body
+        const product = await Product.create({ name, price })
 
-    // safeParse funktionen kommer kolla att req.body ser ut som vi förväntar oss
-    // är den inte så vet vi att klienten skickade något vi inte vill acceptera
-    // så skickar en status på 400 (Bad Request) och ett meddelande på vad som gick fel
-    if (!requestSchema.safeParse(req.body).success) {
+        res.json(product)
+    } catch (error) {
         return res.status(400).send({ message: 'Invalid types' })
     }
-
-    const { name, price } = req.body
-
-    const product = {
-        id: products.length + 1,
-        name,
-        price,
-    }
-
-    products.push(product)
-
-    res.json(product)
 })
 
 app.listen(3000)
