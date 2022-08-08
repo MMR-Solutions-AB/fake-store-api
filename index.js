@@ -57,7 +57,7 @@ app.get('/products/:id', async (req, res) => {
 })
 
 // radera en produkt
-app.delete('/products/:id',(req,res)=>{
+app.delete('/products/:id', async (req,res)=>{
     try {
         const id = req.params.id
         const product = await Product.findByIdAndDelete(id)
