@@ -90,6 +90,12 @@ app.post('/product', async (req, res) => {
     }
 })
 
+app.get('/carts', async (req, res) => {
+    const carts = await Cart.find({}).populate('products.product').limit(1000)
+
+    return res.json(carts)
+})
+
 // skapa en ny cart
 app.post('/cart', async (req, res) => {
     // ifall använder gav något som inte stämmer överens med vår Mongoose schema kommer funktionen error:a
