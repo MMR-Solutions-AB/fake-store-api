@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 const Product = require('./models/Product')
+const Cart = require('./models/Cart')
 const { z } = require('zod')
 
 require('dotenv').config()
@@ -82,6 +83,20 @@ app.post('/product', async (req, res) => {
     try {
         const { name, price } = req.body
         const product = await Product.create({ name, price })
+
+        res.json(product)
+    } catch (error) {
+        return res.status(400).send({ message: 'Invalid types' })
+    }
+})
+
+// skapa en ny cart
+app.post('/cart', async (req, res) => {
+    // ifall använder gav något som inte stämmer överens med vår Mongoose schema kommer funktionen error:a
+    // som vi fångar i catch nedanför
+    try {
+        const { products } = req.body
+        const product = await Cart.create({ products })
 
         res.json(product)
     } catch (error) {
