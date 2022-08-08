@@ -3,6 +3,8 @@ const app = express()
 const cors = require('cors')
 const { z } = require('zod')
 
+require('dotenv').config()
+
 // default data
 const products = [
     {
@@ -79,4 +81,4 @@ app.post('/product', (req, res) => {
     res.json(product)
 })
 
-app.listen(3000)
+app.listen(process.env.PORT)
